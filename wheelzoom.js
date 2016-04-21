@@ -1,12 +1,16 @@
 /*!
-	Wheelzoom 3.0.4
+	Wheelzoom 3.0.4lxr_s
 	license: MIT
 	http://www.jacklmoore.com/wheelzoom
+
+    ver 3.0.4lxr_s adds scrolling when zoomed using the shift (up/down) and ctrl(side)
+            Also variable rate scrolling for firefox
 */
 window.wheelzoom = (function(){
 	var defaults = {
 		zoom: 0.10
 	};
+    var is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 	var canvas = document.createElement('canvas');
 
@@ -82,6 +86,9 @@ window.wheelzoom = (function(){
 			var bgRatioX = bgCursorX/bgWidth;
 			var bgRatioY = bgCursorY/bgHeight;
 
+         // do not reseize if shift is pressed (may be needed for sidescrolling)
+         var evt = e || window.event;
+         if(evt.shiftKey == false && evt.ctrlKey == false){
 			// Update the bg size:
 			if (deltaY < 0) {
 				bgWidth += bgWidth*settings.zoom;
@@ -90,6 +97,7 @@ window.wheelzoom = (function(){
 				bgWidth -= bgWidth*settings.zoom;
 				bgHeight -= bgHeight*settings.zoom;
 			}
+        }
 
 			// Take the percent offset and apply it to the new size:
 			bgPosX = offsetX - (bgWidth * bgRatioX);
@@ -98,10 +106,28 @@ window.wheelzoom = (function(){
 			// Prevent zooming out beyond the starting size
 			if (bgWidth <= width || bgHeight <= height) {
 				reset();
-			} else {
+            } else if(evt.shiftKey){
+                //sidescroll(deltaY);
+                if(is_firefox){
+                    bgPosX -= deltaY * 11;
+                }else{
+                    bgPosX -= deltaY;
+                }
+                previousEvent = e;
+                updateBgStyle();
+            } else if(evt.ctrlKey){
+                if(is_firefox){
+                    bgPosY -= deltaY * 12;
+                }else{
+                    bgPosY -= deltaY;
+                }
+                previousEvent = e;
+                updateBgStyle();
+            } else {
 				updateBgStyle();
 			}
 		}
+
 
 		function drag(e) {
 			e.preventDefault();
